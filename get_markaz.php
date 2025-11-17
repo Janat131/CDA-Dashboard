@@ -2,7 +2,7 @@
 $host = "localhost"; 
 $user = "root";   
 $pass = "";       
-$dbname = "markaz";  
+$dbname = "cda_dashboard";  
 
 $conn = new mysqli($host, $user, $pass, $dbname);
 
@@ -10,7 +10,7 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-$sql = "SELECT `Name`, `Address`, `Longitude`, `Latitude` FROM `markaz_in_`"; 
+$sql = "SELECT `name`, `address`, `longitude`, `latitude` FROM `markaz_in___1_`"; 
 $result = $conn->query($sql);
 
 if (!$result) {
@@ -20,10 +20,10 @@ if (!$result) {
 $data = [];
 while ($row = $result->fetch_assoc()) {
     $data[] = [
-        "name"      => $row["Name"],      
-        "address"   => $row["Address"],   
-        "latitude"  => $row["Latitude"],
-        "longitude" => $row["Longitude"]
+        "name"      => $row["name"],      
+        "address"   => $row["address"],   
+        "latitude"  => $row["latitude"],
+        "longitude" => $row["longitude"]
     ];
 }
 

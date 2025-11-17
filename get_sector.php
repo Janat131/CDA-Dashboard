@@ -2,7 +2,7 @@
 $host = "localhost"; 
 $user = "root";   
 $pass = "";       
-$dbname = "sectors";  
+$dbname = "cda_dashboard";  
 
 $conn = new mysqli($host, $user, $pass, $dbname);
 
@@ -10,7 +10,7 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-$sql = "SELECT `name`, `longitude`, `latitude` FROM `sectors_1`"; 
+$sql = "SELECT `name`, `longitude`, `latitude` FROM `sectors_1__1_`"; 
 $result = $conn->query($sql);
 
 $data = [];

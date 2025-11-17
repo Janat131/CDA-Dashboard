@@ -40,33 +40,40 @@
   </div>
 
   <div class="main">
-    <div class="navbar" style="background-color: darkgreen; padding: 15px; text-align:center;">
-      <h1 id="typewriter" class="typewriter"></h1>
-    </div>
-    
-    <div class="cards">
-      <div class="card">
-        <h3>Sectors</h3>
-        <h4>30 Sectors</h4>
-        <a href="sectors.php" class="btn">Explore</a>
-      </div>
-
-      <div class="card">
-        <h3>Zones</h3>
-        <h4>5 Zones</h4>
-        <a href="zones.php" class="btn">Explore</a>
-      </div>
-
-      <div class="card">
-        <h3>Markaz</h3>
-        <h4>16 Markaz</h4>
-        <a href="map.php" class="btn">Explore</a>
-      </div>
-    </div>
+  <div class="navbar" style="background-color: darkgreen; padding: 15px; text-align:center;">
+    <h1 id="typewriter" class="typewriter"></h1>
   </div>
 
+  <div class="cards">
+    <div class="card">
+      <h3>Sectors</h3>
+      <h4>30 Sectors</h4>
+      <a href="sectors.php" class="btn">Explore</a>
+    </div>
+
+    <div class="card">
+      <h3>Zones</h3>
+      <h4>5 Zones</h4>
+      <a href="zones.php" class="btn">Explore</a>
+    </div>
+
+    <div class="card">
+      <h3>Markaz</h3>
+      <h4>16 Markaz</h4>
+      <a href="map.php" class="btn">Explore</a>
+    </div>
+
+    <div class="card">
+      <h3>CDA Housing Schemes</h3>
+      <h4>40 Housing Schemes</h4>
+      <a href="Housing.php" class="btn">Explore</a>
+    </div>
+  </div>
+</div>
+
+
   <script>
-    const text = "Welcome to Capital Development Authority";
+    const text = "Welcome to Capital Devel ment Authority";
     let i = 0;
     const speed = 200; 
 

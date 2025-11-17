@@ -32,6 +32,20 @@
       </select>
     </div>
 
+    <div class="search-container">
+    <label for="searchType">Select Type:</label>
+    <select id="searchType">
+      <option value="">-- Select Type --</option>
+      <option value="sector">Sector</option>
+      <option value="subsector">Subsector</option>
+      <option value="street">Street</option>
+      <option value="plot">Plot</option>
+    </select>
+
+    <input type="text" id="searchInput" placeholder="Enter name or number..." />
+    <button id="searchBtn">Search</button>
+  </div>
+
     <div id="areaInfo" style="display:none;">
       <p><strong>Name:</strong> <span id="markazName"></span></p>
       <p><strong>Latitude:</strong> <span id="markazLatitude"></span></p>

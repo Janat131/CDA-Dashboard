@@ -1,151 +1,160 @@
-     * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-    }
+/* === Reset & Base === */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
 
-    body {
-      display: flex;
-      height: 100vh;
-      background-color: #f4f6f8;
-    }
+html, body {
+  height: 100%;
+  width: 100%;
+}
 
-    /* === Sidebar Styling (Dashboard Design Applied) === */
-.sidebar {
-  width: 250px;  /* keep original width */
-  height: 100vh;
-  position: fixed;
-  top: 0;
+body {
+  background-color: #f4f6f8;
+}
+
+/* === Search Toolbar at Top === */
+.search-toolbar {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  padding: 10px 15px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.search-box label {
+  font-weight: 600;
+  color: black;
+  font-size: 13px;
+}
+
+.search-box input {
+  padding: 4px 6px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 13px;
+}
+
+/* Search Button */
+.search-toolbar button {
+  background-color: #198754; /* green */
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.search-toolbar button:hover {
+  background-color: #157347;
+  transform: scale(1.05);
+}
+
+/* === Map Fullscreen Under Search Bar === */
+#map {
+  position: absolute;
+  top: 60px; /* leave space for search bar */
   left: 0;
-  padding: 20px;
-  color: white;
-  background-color: darkgreen;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
 }
 
-.sidebar .logo {
-  width: 100px;
-  margin-bottom: 20px;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.sidebar h2 {
-  text-align: center;
-  margin-bottom: 30px;
-  font-size: 22px;
-  text-shadow: 2px 2px 5px black; /* permanent shadow */
-}
-
-.sidebar a {
-  display: block;
-  color: #ecf0f1;
-  text-decoration: none;
-  margin-bottom: 15px;
-  font-size: 16px;
-}
-
-.sidebar a:hover {
-  text-decoration: underline;
-}
-
-/* === Main Section with space for sidebar === */
-.main {
-  margin-left: 240px; /* adjust for sidebar */
-  padding: 20px;
-  flex: 1;
-  background: #f4f4f4;
+/* === Toolbar Buttons (Green) on Map === */
+.toolbar {
+  position: absolute;
+  top: 80px;
+  left: 10px;
   display: flex;
   flex-direction: column;
+  z-index: 1000;
 }
 
+.toolbar button {
+  margin-bottom: 6px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background-color: #198754; /* green */
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  transition: all 0.2s ease-in-out;
+}
 
-        #map {
-        height: 400px;
-        width: 100%;
-        margin-top: 20px;
-        border: 2px solid #ccc;
-        border-radius: 6px;
-        }
+.toolbar button:hover {
+  background-color: #157347;
+  transform: scale(1.05);
+}
 
-        #areaInfo {
-        margin-top: 15px;
-        padding: 10px;
-        background: #fff;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        width: 320px;
-        display: none;
-        }
-    .main {
-    flex: 1;
-    padding: 20px;
-    background: #f4f4f4;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    }
+/* === Combined Layers + Transparency Panel === */
+.opacity-toolbar {
+  position: absolute;
+  top: 80px;
+  right: 10px;
+  z-index: 1000;
+  background: rgba(255,255,255,0.95);
+  border-radius: 10px;
+  padding: 12px 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  font-size: 13px;
+  color: #000;
+}
 
-    .markaz-select-container {
-    display: flex;
-    align-items: center;
-    gap: 10px; 
-    margin-bottom: 15px;
-    }
+.opacity-toolbar div {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
-    #markazSelect {
-    padding: 8px 12px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    min-width: 200px; 
-    }
+.opacity-toolbar label {
+  flex: 1;
+  font-weight: 600;
+  color: darkgreen;
+}
 
-     .sector-select-container {
-    display: flex;
-    align-items: center;
-    gap: 10px; 
-    margin-bottom: 15px;
-    }
+/* Range sliders */
+.opacity-toolbar input[type="range"] {
+  -webkit-appearance: none;
+  width: 110px;
+  height: 6px;
+  background: linear-gradient(90deg, #81c784, #388e3c);
+  border-radius: 4px;
+  outline: none;
+}
 
-    #sectorSelect {
-    padding: 8px 12px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    min-width: 200px; 
-    }
+.opacity-toolbar input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 16px;
+  width: 16px;
+  background: #81a895;
+  border: 2px solid #1b5e20;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
 
-
-     .zones-select-container {
-    display: flex;
-    align-items: center;
-    gap: 10px; 
-    margin-bottom: 15px;
-    }
-
-    #zonesSelect {
-    padding: 8px 12px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    min-width: 200px; 
-    }
-
-
-
-  .grounds-select-container {
-    display: flex;
-    align-items: center;
-    gap: 10px; 
-    margin-bottom: 15px;
-  }
-
-  #groundsSelect {
-    padding: 8px 12px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    min-width: 200px; 
-  }
+.opacity-toolbar input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  background: #1b5e20;
+}
