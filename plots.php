@@ -33,8 +33,8 @@ html, body { height:100%; width:100%; }
 /* Toggle button */
 #toggleSidebarBtn {
   position: absolute;
-  top: 15px;
-  left: 15px;
+  top: 20px;     /* moves it down near the zoom control */
+  left:15px;    /* moves it right so it doesn't touch +/- */
   z-index: 1100;
   background: #198754;
   color: #fff;
@@ -44,6 +44,7 @@ html, body { height:100%; width:100%; }
   cursor: pointer;
   font-weight: 600;
 }
+
 
 
 /* === Map === */
@@ -60,7 +61,7 @@ html, body { height:100%; width:100%; }
 /* === Toolbar Buttons === */
 .toolbar {
   position: absolute;
-  top: 60px;
+  top: 15px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1000;
@@ -149,36 +150,46 @@ html, body { height:100%; width:100%; }
   
 
 <!-- Search Toolbar -->
-<!-- Toggle button -->
-<button id="toggleSidebarBtn">🔍 Search</button>
+<button id="toggleSidebarBtn">🔍</button>
 
 <!-- Sidebar -->
 <div id="searchSidebar">
   <h3>Search Plots</h3>
   <div class="search-box">
-    <label>Sector:</label>
+    <label>Sector</label>
     <input list="sectorsList" id="searchSector" placeholder="Enter sector">
     <datalist id="sectorsList"></datalist>
   </div>
   <div class="search-box">
-    <label>Subsector:</label>
+    <label>Subsector</label>
     <input list="subsectorsList" id="searchSubsector" placeholder="Enter subsector">
     <datalist id="subsectorsList"></datalist>
   </div>
   <div class="search-box">
-    <label>Plot:</label>
+    <label>Plot</label>
     <input list="plotsList" id="searchPlot" placeholder="Enter plot">
     <datalist id="plotsList"></datalist>
   </div>
   <div class="search-box">
-    <label>Street:</label>
+    <label>Street</label>
     <input list="streetsList" id="searchStreet" placeholder="Enter street">
     <datalist id="streetsList"></datalist>
   </div>
-  <button onclick="searchAll()">Search</button>
-  <button onclick="toggleSidebar()">Close</button>
-</div>
+    <button onclick="searchAll()">Search</button>
 
+  <!-- Correct Housing Schemes Link -->
+  <a href="Housing.php" style="
+      display: block;
+      margin-top: 10px;
+      padding: 8px 12px;
+      background-color: #198754;
+      color: white;
+      text-align: center;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 600;
+      cursor: pointer;
+  ">Housing Schemes</a></div>
 
 <!-- Map -->
 <div id="map"></div>
@@ -281,7 +292,17 @@ const googleStreets = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&
 const googleSatellite = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', { maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'] });
 const googleHybrid = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'] });
 
-const map = L.map('map', {center:[33.6844,73.0479], zoom:12, layers:[googleSatellite]});
+// Disable default zoom control
+const map = L.map('map', {
+  center: [33.6844, 73.0479],
+  zoom: 12,
+  layers: [googleSatellite],
+  zoomControl: false  // disables top-left zoom
+});
+
+// Add zoom control at bottom right
+L.control.zoom({ position: 'bottomright' }).addTo(map);
+
 
 /* === OVERLAY LAYERS === */
 const boundaryLayer = L.tileLayer.wms("http://localhost:8080/geoserver/ISB/wms", { layers:'ISB:ICT_Boundary', format:'image/png', transparent:true }).addTo(map);
@@ -574,6 +595,7 @@ toggleBtn.addEventListener('click', toggleSidebar);
 function toggleSidebar() {
   sidebar.classList.toggle('show');
 }
+
 
 </script>
 
