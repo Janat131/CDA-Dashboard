@@ -133,10 +133,72 @@ overlayLayers.forEach(o=>{
   document.getElementById(o.op).addEventListener('input', e=>o.layer.setOpacity(parseFloat(e.target.value)));
 });
 
-// Identify
-let identifyActive=false;
-document.getElementById('identifyBtn').addEventListener('click', ()=>{identifyActive=!identifyActive;alert(identifyActive?"Identify ON: Click map to get coordinates":"Identify OFF");});
-map.on('click', e=>{if(identifyActive){L.popup().setLatLng(e.latlng).setContent(`<b>Coordinates</b><br>Latitude: ${e.latlng.lat.toFixed(6)}<br>Longitude: ${e.latlng.lng.toFixed(6)}`).openOn(map);}});
+// Identify Tool
+let identifyActive = false;
+
+// Toggle Identify tool
+document.getElementById('identifyBtn').addEventListener('click', () => {
+    identifyActive = !identifyActive;
+    alert(identifyActive ? "Identify ON: Click map to get plot info" : "Identify OFF");
+});
+
+// Map click event for Identify
+map.on('click', e => {
+    if (!identifyActive) return;
+
+    const lat = parseFloat(e.latlng.lat);
+    const lng = parseFloat(e.latlng.lng);
+
+    // Tolerance in degrees (~0.001 ≈ 100m)
+    const tolerance = 0.0002; // smaller tolerance
+;
+
+    // Find nearest plot within tolerance
+    let nearestPlot = null;
+    let minDistance = Infinity;
+
+    plotsData.forEach(p => {
+        const plotLat = parseFloat(p.Latitude ?? p.latitude);
+        const plotLng = parseFloat(p.Longitude ?? p.longitude);
+
+        if (isNaN(plotLat) || isNaN(plotLng)) return;
+
+        const distance = Math.hypot(plotLat - lat, plotLng - lng);
+        if (distance < tolerance && distance < minDistance) {
+            nearestPlot = p;
+            minDistance = distance;
+        }
+    });
+
+    if (nearestPlot) {
+        // Show full plot info
+        const popupContent = `
+            <b>Sector:</b> ${nearestPlot.Sector ?? '-'}<br>
+            <b>Subsector:</b> ${nearestPlot.Subsector ?? '-'}<br>
+            <b>Plot:</b> ${nearestPlot.Plot ?? '-'}<br>
+            <b>Street:</b> ${nearestPlot['Street_No/Road'] ?? nearestPlot.Street ?? '-'}<br>
+            <b>Type:</b> ${nearestPlot.Type ?? '-'}<br>
+            <b>Size:</b> ${nearestPlot.Size ?? '-'}<br>
+            <b>Latitude:</b> ${nearestPlot.Latitude ?? nearestPlot.latitude}<br>
+            <b>Longitude:</b> ${nearestPlot.Longitude ?? nearestPlot.longitude}
+        `;
+        L.popup()
+         .setLatLng([nearestPlot.Latitude ?? nearestPlot.latitude, nearestPlot.Longitude ?? nearestPlot.longitude])
+         .setContent(popupContent)
+         .openOn(map);
+    } else {
+        // Fallback: show only coordinates
+        L.popup()
+         .setLatLng([lat, lng])
+         .setContent(`
+            <b>Coordinates</b><br>
+            Latitude: ${lat.toFixed(6)}<br>
+            Longitude: ${lng.toFixed(6)}
+         `)
+         .openOn(map);
+    }
+});
+
 
 // Measure
 let measureActive=false, measurePoints=[], measureLine;
@@ -175,18 +237,54 @@ function populateDatalists(data){
   [['sectorsList',sectors],['subsectorsList',subsectors],['plotsList',plots],['streetsList',streets]].forEach(([id,set])=>{const dl=document.getElementById(id);dl.innerHTML='';Array.from(set).sort().forEach(v=>{const o=document.createElement('option'); o.value=v; dl.appendChild(o);});});
 }
 
-function searchAll(){
-  const sector=document.getElementById('searchSector').value.trim().toLowerCase();
-  const subsector=document.getElementById('searchSubsector').value.trim().toLowerCase();
-  const plot=document.getElementById('searchPlot').value.trim().toLowerCase();
-  const street=document.getElementById('searchStreet').value.trim().toLowerCase();
-  if(!sector&&!subsector&&!plot&&!street){alert('Enter at least one value!'); return;}
-  const matches=plotsData.filter(item=>(!sector||String(item.Sector).toLowerCase()===sector)&&(!subsector||String(item.Subsector).toLowerCase()===subsector)&&(!plot||String(item.Plot).toLowerCase()===plot)&&(!street||String(item['Street_No/Road']??item.Street??'').toLowerCase()===street));
-  if(matches.length>0){
-    if(window.lastMarker) map.removeLayer(window.lastMarker);
-    const m=matches[0], lat=parseFloat(m.Latitude??m.latitude), lon=parseFloat(m.Longitude??m.longitude);
-    if(!isNaN(lat)&&!isNaN(lon)){const popup=`<b>Sector:</b> ${m.Sector??'-'}<br><b>Subsector:</b> ${m.Subsector??'-'}<br><b>Plot:</b> ${m.Plot??'-'}<br><b>Street:</b> ${m['Street_No/Road']??m.Street??'-'}<br><b>Latitude:</b> ${lat.toFixed(6)}<br><b>Longitude:</b> ${lon.toFixed(6)}`;const marker=L.marker([lat,lon]).addTo(map);window.lastMarker=marker;map.flyTo([lat,lon],16,{duration:1.5,easeLinearity:0.25});setTimeout(()=>marker.bindPopup(popup).openPopup(),500);} else alert('No valid coordinates found!');
-  } else alert('No matching result found!');
+function searchAll() {
+  const sector = document.getElementById('searchSector').value.trim().toLowerCase();
+  const subsector = document.getElementById('searchSubsector').value.trim().toLowerCase();
+  const plot = document.getElementById('searchPlot').value.trim().toLowerCase();
+  const street = document.getElementById('searchStreet').value.trim().toLowerCase();
+
+  if (!sector && !subsector && !plot && !street) { 
+    alert('Enter at least one value!'); 
+    return; 
+  }
+
+  const matches = plotsData.filter(item =>
+    (!sector || String(item.Sector).toLowerCase() === sector) &&
+    (!subsector || String(item.Subsector).toLowerCase() === subsector) &&
+    (!plot || String(item.Plot).toLowerCase() === plot) &&
+    (!street || String(item['Street_No/Road'] ?? item.Street ?? '').toLowerCase() === street)
+  );
+
+  if (matches.length > 0) {
+    if (window.lastMarker) map.removeLayer(window.lastMarker);
+
+    const m = matches[0],
+          lat = parseFloat(m.Latitude ?? m.latitude),
+          lon = parseFloat(m.Longitude ?? m.longitude);
+
+    if (!isNaN(lat) && !isNaN(lon)) {
+      const popup = `
+        <b>Sector:</b> ${m.Sector ?? '-'}<br>
+        <b>Subsector:</b> ${m.Subsector ?? '-'}<br>
+        <b>Plot:</b> ${m.Plot ?? '-'}<br>
+        <b>Type:</b> ${m.Type ?? '-'}<br>
+        <b>Size:</b> ${m.Size ?? '-'}<br>
+        <b>Street:</b> ${m['Street_No/Road'] ?? m.Street ?? '-'}<br>
+        <b>Latitude:</b> ${lat.toFixed(6)}<br>
+        <b>Longitude:</b> ${lon.toFixed(6)}
+      `;
+
+      const marker = L.marker([lat, lon]).addTo(map);
+      window.lastMarker = marker;
+
+      map.flyTo([lat, lon], 16, { duration: 1.5, easeLinearity: 0.25 });
+      setTimeout(() => marker.bindPopup(popup).openPopup(), 500);
+    } else {
+      alert('No valid coordinates found!');
+    }
+  } else {
+    alert('No matching result found!');
+  }
 }
 
 // Sidebar toggle
