@@ -79,16 +79,62 @@ html, body { height:100%; width:100%; }
     <option value="googleHybrid">Google Hybrid</option>
   </select></div>
 
-  <h3>Overlay Layers</h3>
-  <div><input type="checkbox" id="boundaryLayerCheckbox" checked><label for="boundaryLayerCheckbox">ICT Boundary</label><input type="range" id="boundaryOpacity" min="0" max="1" step="0.1" value="0.7"></div>
-  <div><input type="checkbox" id="zonesLayerCheckbox"><label for="zonesLayerCheckbox">Zones</label><input type="range" id="zonesOpacity" min="0" max="1" step="0.1" value="0.7"></div>
-  <div><input type="checkbox" id="plotsLayerCheckbox"><label for="plotsLayerCheckbox">Plots</label><input type="range" id="plotsOpacity" min="0" max="1" step="0.1" value="0.7"></div>
-  <div><input type="checkbox" id="railwayLayerCheckbox"><label for="railwayLayerCheckbox">Railway Lines</label><input type="range" id="railwayOpacity" min="0" max="1" step="0.1" value="0.7"></div>
-  <div><input type="checkbox" id="roadsLayerCheckbox"><label for="roadsLayerCheckbox">Major Roads</label><input type="range" id="roadsOpacity" min="0" max="1" step="0.1" value="0.7"></div>
-  <div><input type="checkbox" id="housingSchemesLayerCheckbox"><label for="housingSchemesLayerCheckbox">Private Housing Schemes</label><input type="range" id="housingSchemesOpacity" min="0" max="1" step="0.1" value="1"></div>
-  <div><input type="checkbox" id="sectorBoundariesLayerCheckbox"><label for="sectorBoundariesLayerCheckbox">Sector & Sub-Sector Boundaries</label><input type="range" id="sectorBoundariesOpacity" min="0" max="1" step="0.1" value="0.7"></div>
-  <div><input type="checkbox" id="d12TiffCheckbox"><label for="d12TiffCheckbox">D-12 Raster (TIFF)</label><input type="range" id="d12TiffOpacity" min="0" max="1" step="0.1" value="1"></div>
+<h3>Overlay Layers</h3>
+
+<div>
+  <input type="checkbox" id="boundaryLayerCheckbox" checked>
+  <label for="boundaryLayerCheckbox">ICT Boundary</label>
+  <input type="range" id="boundaryOpacity" min="0" max="1" step="0.1" value="0.7">
 </div>
+
+<div>
+  <input type="checkbox" id="zonesLayerCheckbox">
+  <label for="zonesLayerCheckbox">Zones</label>
+  <input type="range" id="zonesOpacity" min="0" max="1" step="0.1" value="0.7">
+</div>
+
+<div>
+  <input type="checkbox" id="plotsLayerCheckbox">
+  <label for="plotsLayerCheckbox">Plots</label>
+  <input type="range" id="plotsOpacity" min="0" max="1" step="0.1" value="0.7">
+</div>
+
+<div>
+  <input type="checkbox" id="railwayLayerCheckbox">
+  <label for="railwayLayerCheckbox">Railway Lines</label>
+  <input type="range" id="railwayOpacity" min="0" max="1" step="0.1" value="0.7">
+</div>
+
+<div>
+  <input type="checkbox" id="roadsLayerCheckbox">
+  <label for="roadsLayerCheckbox">Major Roads</label>
+  <input type="range" id="roadsOpacity" min="0" max="1" step="0.1" value="0.7">
+</div>
+
+<div>
+  <input type="checkbox" id="housingSchemesLayerCheckbox">
+  <label for="housingSchemesLayerCheckbox">Private Housing Schemes</label>
+  <input type="range" id="housingSchemesOpacity" min="0" max="1" step="0.1" value="1">
+</div>
+
+<div>
+  <input type="checkbox" id="sectorBoundariesLayerCheckbox">
+  <label for="sectorBoundariesLayerCheckbox">Sector & Sub-Sector Boundaries</label>
+  <input type="range" id="sectorBoundariesOpacity" min="0" max="1" step="0.1" value="0.7">
+</div>
+
+<div>
+  <input type="checkbox" id="d12TiffCheckbox">
+  <label for="d12TiffCheckbox">D-12 Raster (TIFF)</label>
+  <input type="range" id="d12TiffOpacity" min="0" max="1" step="0.1" value="1">
+</div>
+
+<div>
+  <input type="checkbox" id="drainsLayerCheckbox">
+  <label for="drainsLayerCheckbox">ICT Drains</label>
+  <input type="range" id="drainsOpacity" min="0" max="1" step="0.1" value="0.7">
+</div>
+
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -112,21 +158,32 @@ const plotsLayer=L.tileLayer.wms("http://localhost:8080/geoserver/D12/wms",{laye
 const housingSchemesLayer=L.tileLayer.wms("http://localhost:8080/geoserver/ISB/wms",{layers:'ISB:Private_Housing_Schemes', format:'image/png', transparent:true});
 const sectorBoundariesLayer=L.tileLayer.wms("http://localhost:8080/geoserver/ISB/wms",{layers:"ISB:Sector_and_Sub_Sector_Boundaries",format:"image/png",transparent:true});
 const d12TiffLayer=L.tileLayer.wms("http://localhost:8080/geoserver/ISB/wms",{layers:'ISB:D-12_tiff', format:'image/png', transparent:true});
+const drainsLayer = L.tileLayer.wms(
+  "http://localhost:8080/geoserver/ISB/wms",
+  {
+    layers: "ISB:ICT_Drains_GCS_shp",
+    format: "image/png",
+    transparent: true
+  }
+);
+
 
 const baseMapsObj={googleSatellite, googleStreets, openStreet, googleHybrid};
 document.getElementById('baseMapSelect').addEventListener('change', e=>{const selected=e.target.value;Object.values(baseMapsObj).forEach(l=>map.removeLayer(l));map.addLayer(baseMapsObj[selected]);});
 
 // Overlay checkboxes & opacity
-const overlayLayers=[
-  {cb:'boundaryLayerCheckbox', layer:boundaryLayer, op:'boundaryOpacity'},
-  {cb:'zonesLayerCheckbox', layer:zonesLayer, op:'zonesOpacity'},
-  {cb:'plotsLayerCheckbox', layer:plotsLayer, op:'plotsOpacity'},
-  {cb:'railwayLayerCheckbox', layer:railwayLinesLayer, op:'railwayOpacity'},
-  {cb:'roadsLayerCheckbox', layer:majorRoadsLayer, op:'roadsOpacity'},
-  {cb:'housingSchemesLayerCheckbox', layer:housingSchemesLayer, op:'housingSchemesOpacity'},
-  {cb:'sectorBoundariesLayerCheckbox', layer:sectorBoundariesLayer, op:'sectorBoundariesOpacity'},
-  {cb:'d12TiffCheckbox', layer:d12TiffLayer, op:'d12TiffOpacity'}
+const overlayLayers = [
+  { cb:'boundaryLayerCheckbox', layer:boundaryLayer, op:'boundaryOpacity' },
+  { cb:'zonesLayerCheckbox', layer:zonesLayer, op:'zonesOpacity' },
+  { cb:'plotsLayerCheckbox', layer:plotsLayer, op:'plotsOpacity' },
+  { cb:'railwayLayerCheckbox', layer:railwayLinesLayer, op:'railwayOpacity' },
+  { cb:'roadsLayerCheckbox', layer:majorRoadsLayer, op:'roadsOpacity' },
+  { cb:'housingSchemesLayerCheckbox', layer:housingSchemesLayer, op:'housingSchemesOpacity' },
+  { cb:'sectorBoundariesLayerCheckbox', layer:sectorBoundariesLayer, op:'sectorBoundariesOpacity' },
+  { cb:'d12TiffCheckbox', layer:d12TiffLayer, op:'d12TiffOpacity' },
+  { cb:'drainsLayerCheckbox', layer:drainsLayer, op:'drainsOpacity' }
 ];
+
 
 overlayLayers.forEach(o=>{
   document.getElementById(o.cb).addEventListener('change', e=>e.target.checked?map.addLayer(o.layer):map.removeLayer(o.layer));
