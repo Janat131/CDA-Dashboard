@@ -30,11 +30,55 @@ html, body { height:100%; width:100%; }
   cursor: pointer; font-size: 14px; font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,0.2);
 }
 .toolbar button:hover { background-color: #157347; transform: scale(1.05); }
-
+/* Panel CSS */
 .opacity-toolbar {
-  position:absolute; top:80px; right:10px; z-index:1000; background: rgba(255,255,255,0.95);
-  border-radius:10px; padding:12px 16px; box-shadow:0 2px 8px rgba(0,0,0,0.2); font-size:13px; color:#000; max-width:220px;
+  position: absolute;
+  top: 80px;
+  right: 10px;
+  z-index: 1000;
+  background: rgba(255,255,255,0.95);
+  border-radius: 10px;
+  padding: 12px 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  font-size: 13px;
+  color: #000;
+  width: 220px;
+
+  /*SCROLL SETTINGS */
+  max-height: 70vh; 
+  overflow-y: auto;     
 }
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 6px 4px 10px;
+
+  background-color: #198754; 
+  color: black;         
+
+  border-radius: 8px;         
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  margin-bottom: 8px;
+}
+
+
+
+.panel-content {
+  max-height: 55vh;     /* scrollable area */
+  overflow-y: auto;
+  transition: max-height 0.3s ease;
+}
+
+.panel-content.collapsed {
+  max-height: 0;
+  overflow: hidden;
+}
+
 .opacity-toolbar h3 { margin-bottom:6px; font-size:14px; font-weight:700; }
 .opacity-toolbar div { margin-bottom:8px; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
 .opacity-toolbar label { flex:0 0 100px; font-weight:600; color:black; font-size:13px; }
@@ -69,8 +113,18 @@ html, body { height:100%; width:100%; }
   <button id="downloadMapBtn">📄</button>
   <button id="searchCoordBtn">🗺️</button>
 </div>
+<!--Panel-->
 
 <div class="opacity-toolbar">
+
+    <!-- Panel Header -->
+  <div class="panel-header" id="layerPanelHeader">
+    <span>  Layers Panel</span>
+    <span id="panelToggleIcon">▼</span>
+  </div>
+
+  <!-- Panel Content -->
+  <div class="panel-content collapsed" id="layerPanelContent">
   <h3>Base Maps</h3>
   <div><select id="baseMapSelect" style="width:100%; padding:4px 6px; border-radius:4px; border:1px solid #ccc;">
     <option value="openStreet">OpenStreetMap</option>
@@ -82,7 +136,7 @@ html, body { height:100%; width:100%; }
 <h3>Overlay Layers</h3>
 
 <div>
-  <input type="checkbox" id="boundaryLayerCheckbox" checked>
+  <input type="checkbox" id="boundaryLayerCheckbox">
   <label for="boundaryLayerCheckbox">ICT Boundary</label>
   <input type="range" id="boundaryOpacity" min="0" max="1" step="0.1" value="0.7">
 </div>
@@ -135,6 +189,35 @@ html, body { height:100%; width:100%; }
   <input type="range" id="drainsOpacity" min="0" max="1" step="0.1" value="0.7">
 </div>
 
+<div>
+  <input type="checkbox" id="waterBodiesLayerCheckbox">
+  <label for="waterBodiesLayerCheckbox">Water Bodies</label>
+  <input type="range" id="waterBodiesOpacity" min="0" max="1" step="0.1" value="0.7">
+</div>
+
+<div>
+  <input type="checkbox" id="zone4LayerCheckbox">
+  <label for="zone4LayerCheckbox">Zone 4 Sub Zones</label>
+  <input type="range" id="zone4Opacity" min="0" max="1" step="0.1" value="0.7">
+</div>
+
+<div>
+  <input type="checkbox" id="damLakesLayerCheckbox">
+  <label for="damLakesLayerCheckbox">Dam, Lakes & Reservoirs</label>
+  <input type="range" id="damLakesOpacity" min="0" max="1" step="0.1" value="0.7">
+</div>
+
+<div>
+  <input type="checkbox" id="mainWaterSupplyLayerCheckbox">
+  <label for="mainWaterSupplyLayerCheckbox">Main Water Supply Network</label>
+  <input type="range" id="mainWaterSupplyOpacity" min="0" max="1" step="0.1" value="0.7">
+</div>
+
+<div>
+  <input type="checkbox" id="internalWaterSupplyLayerCheckbox">
+  <label for="internalWaterSupplyLayerCheckbox">Internal Water Supply Network</label>
+  <input type="range" id="internalWaterSupplyOpacity" min="0" max="1" step="0.1" value="0.7">
+</div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -150,7 +233,7 @@ const googleHybrid=L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={
 const map=L.map('map',{center:[33.6844,73.0479], zoom:12, layers:[googleSatellite], zoomControl:false});
 L.control.zoom({position:'bottomright'}).addTo(map);
 
-const boundaryLayer=L.tileLayer.wms("http://localhost:8080/geoserver/ISB/wms",{layers:'ISB:ICT_Boundary', format:'image/png', transparent:true}).addTo(map);
+const boundaryLayer=L.tileLayer.wms("http://localhost:8080/geoserver/ISB/wms",{layers:'ISB:ICT_Boundary', format:'image/png', transparent:true});
 const zonesLayer=L.tileLayer.wms("http://localhost:8080/geoserver/ISB/wms",{layers:'ISB:ICT_Zones', format:'image/png', transparent:true});
 const railwayLinesLayer=L.tileLayer.wms("http://localhost:8080/geoserver/ISB/wms",{layers:'ISB:Railway_Line', format:'image/png', transparent:true});
 const majorRoadsLayer=L.tileLayer.wms("http://localhost:8080/geoserver/ISB/wms",{layers:'ISB:Major_Roads', format:'image/png', transparent:true});
@@ -166,7 +249,46 @@ const drainsLayer = L.tileLayer.wms(
     transparent: true
   }
 );
-
+const waterBodiesLayer = L.tileLayer.wms(
+  "http://localhost:8080/geoserver/ISB/wms",
+  {
+    layers: "ISB:Water_Bodies",
+    format: "image/png",
+    transparent: true
+  }
+);
+const zone4Layer = L.tileLayer.wms(
+  "http://localhost:8080/geoserver/ISB/wms",
+  {
+    layers: "ISB:Zone_4_Sub_Zones",
+    format: "image/png",
+    transparent: true
+  }
+);
+const damLakesLayer = L.tileLayer.wms(
+  "http://localhost:8080/geoserver/ISB/wms",
+  {
+    layers: "ISB:Dam_Lakes_Reservoirs",
+    format: "image/png",
+    transparent: true
+  }
+);
+const mainWaterSupplyLayer = L.tileLayer.wms(
+  "http://localhost:8080/geoserver/ISB/wms",
+  {
+    layers: "ISB:Main_WaterSupply_Network",
+    format: "image/png",
+    transparent: true
+  }
+);
+const internalWaterSupplyLayer = L.tileLayer.wms(
+  "http://localhost:8080/geoserver/ISB/wms",
+  {
+    layers: "ISB:Internal_WaterSupply_Network_GCS",
+    format: "image/png",
+    transparent: true
+  }
+);
 
 const baseMapsObj={googleSatellite, googleStreets, openStreet, googleHybrid};
 document.getElementById('baseMapSelect').addEventListener('change', e=>{const selected=e.target.value;Object.values(baseMapsObj).forEach(l=>map.removeLayer(l));map.addLayer(baseMapsObj[selected]);});
@@ -181,7 +303,12 @@ const overlayLayers = [
   { cb:'housingSchemesLayerCheckbox', layer:housingSchemesLayer, op:'housingSchemesOpacity' },
   { cb:'sectorBoundariesLayerCheckbox', layer:sectorBoundariesLayer, op:'sectorBoundariesOpacity' },
   { cb:'d12TiffCheckbox', layer:d12TiffLayer, op:'d12TiffOpacity' },
-  { cb:'drainsLayerCheckbox', layer:drainsLayer, op:'drainsOpacity' }
+  { cb:'drainsLayerCheckbox', layer:drainsLayer, op:'drainsOpacity' },
+  { cb: 'waterBodiesLayerCheckbox', layer: waterBodiesLayer, op: 'waterBodiesOpacity' },
+  { cb: 'zone4LayerCheckbox', layer: zone4Layer, op: 'zone4Opacity' },
+  { cb: 'damLakesLayerCheckbox', layer: damLakesLayer, op: 'damLakesOpacity' },
+  { cb: 'mainWaterSupplyLayerCheckbox', layer: mainWaterSupplyLayer, op: 'mainWaterSupplyOpacity' },
+  {cb: 'internalWaterSupplyLayerCheckbox',layer: internalWaterSupplyLayer,op: 'internalWaterSupplyOpacity'}
 ];
 
 
@@ -347,6 +474,17 @@ function searchAll() {
 // Sidebar toggle
 const sidebar=document.getElementById('searchSidebar');
 document.getElementById('toggleSidebarBtn').addEventListener('click', ()=>sidebar.classList.toggle('show'));
+const panelHeader = document.getElementById('layerPanelHeader');
+const panelContent = document.getElementById('layerPanelContent');
+const panelIcon = document.getElementById('panelToggleIcon');
+
+panelHeader.addEventListener('click', () => {
+  panelContent.classList.toggle('collapsed');
+
+  panelIcon.textContent = 
+    panelContent.classList.contains('collapsed') ? '▶' : '▼';
+});
+
 </script>
 </body>
 </html>
