@@ -66,8 +66,6 @@ html, body { height:100%; width:100%; }
   margin-bottom: 8px;
 }
 
-
-
 .panel-content {
   max-height: 55vh;     /* scrollable area */
   overflow-y: auto;
@@ -77,6 +75,112 @@ html, body { height:100%; width:100%; }
 .panel-content.collapsed {
   max-height: 0;
   overflow: hidden;
+}
+
+/* ===== LEGEND PANEL ===== */
+#legendPanel.opacity-toolbar {
+  width: 300px; /* increased from 220px to 300px */
+  padding: 16px 18px; /* slightly more padding for comfort */
+}
+/* ===== LEGEND CSS ===== */
+
+/* Plot fills */
+.res { background: #D9B57B; border: 1px solid #A57C47; }
+.shops { background: #8E9FC0; border: 1px solid #62708F; }
+.school { background: #FFD700; border: 1px solid #B8860B; }
+.commercial { background: #4682B4; border: 1px solid #2C5985; }
+.park { background: #006400; }
+.mosque { background: #E74C3C; }
+.graveyard { background: #C5E88B; }
+
+/* Administrative */
+.ict-boundary { background: #9BE7B3; border: 2px solid #006400; }
+.ict-zones { background: #FFA500; }
+
+/* Outline boxes */
+.legend-outline {
+  width: 16px;
+  height: 16px;
+  background: transparent;
+  border-radius: 3px;
+  border: 2px solid #000;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+/* Colored outline variations */
+.legend-outline.yellow { border-color: #FFFF00; }
+.legend-outline.red { border-color: #FF0000; }
+
+/* Lines */
+.legend-line {
+  width: 22px;
+  height: 4px;
+  display: inline-block;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* Line variations */
+.roads { background: #808080; }
+.railway {
+  background: repeating-linear-gradient(
+    to right,
+    #4A4A4A,
+    #4A4A4A 6px,
+    transparent 6px,
+    transparent 10px
+  );
+}
+.waterline { background: #0a58ca; }
+
+/* Water and Utilities */
+.drains { background: #808080; }
+.water { background: #0a58ca; }
+.dams { background: #87CEFA; }
+
+/* ===== Legend container & items ===== */
+.legend-content {
+  display: flex;
+  flex-direction: column; /* stack sections vertically */
+  gap: 8px;
+}
+
+/* Section headings */
+.legend-content h4 {
+  margin: 10px 0 6px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Legend items */
+.legend-item {
+  display: grid;
+  grid-template-columns: 20px 1fr; /* box/line fixed, label takes rest */
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.4;
+  margin-bottom: 4px;
+  width: 100%;
+}
+
+/* Legend boxes */
+.legend-box {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+/* Optional: prevent wrapping inside legend */
+.legend-content div {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
 }
 
 .opacity-toolbar h3 { margin-bottom:6px; font-size:14px; font-weight:700; }
@@ -104,6 +208,43 @@ html, body { height:100%; width:100%; }
 </div>
 
 <div id="map"></div>
+<!-- Legend Panel -->
+<div id="legendPanel" class="opacity-toolbar" style="display:none; right:260px;">
+
+  <div class="panel-header">
+    <span>Legend</span>
+    <span id="legendClose" style="cursor:pointer;">✖</span>
+  </div>
+
+  <div class="legend-content">
+
+  <h4>D-12 Plots</h4>
+  <div class="legend-item"><span class="legend-box res"></span> Residential / Apartment</div>
+  <div class="legend-item"><span class="legend-box shops"></span> Shops</div>
+  <div class="legend-item"><span class="legend-box school"></span> Schools</div>
+  <div class="legend-item"><span class="legend-box commercial"></span> Commercial</div>
+  <div class="legend-item"><span class="legend-box park"></span> Parks / Playground / Hill Park</div>
+  <div class="legend-item"><span class="legend-box mosque"></span> Mosque</div>
+  <div class="legend-item"><span class="legend-box graveyard"></span> Graveyard</div>
+
+  <h4>Administrative Boundaries</h4>
+  <div class="legend-item"><span class="legend-box ict-boundary"></span> ICT Boundary</div>
+  <div class="legend-item"><span class="legend-box ict-zones"></span> ICT Zones / Sub-Zones</div>
+  <div class="legend-item"><span class="legend-outline yellow"></span> Private Housing Schemes</div>
+  <div class="legend-item"><span class="legend-outline red"></span> Sector & Sub-Sector Boundaries</div>
+
+  <h4>Transport</h4>
+  <div class="legend-item"><span class="legend-line roads"></span> Major Roads</div>
+  <div class="legend-item"><span class="legend-line railway"></span> Railway Line</div>
+
+  <h4>Water & Utilities</h4>
+  <div class="legend-item"><span class="legend-box drains"></span> Drains</div>
+  <div class="legend-item"><span class="legend-box water"></span> Water Bodies</div>
+  <div class="legend-item"><span class="legend-box dams"></span> Dams / Lakes / Reservoirs</div>
+  <div class="legend-item"><span class="legend-line waterline"></span> Main / Internal Water Supply</div>
+
+</div>
+</div>
 
 <div class="toolbar">
   <button id="identifyBtn">📍</button>
@@ -112,6 +253,7 @@ html, body { height:100%; width:100%; }
   <button id="clearMeasure">🧹</button>
   <button id="downloadMapBtn">📄</button>
   <button id="searchCoordBtn">🗺️</button>
+  <button id="legendBtn">🗂️</button>
 </div>
 <!--Panel-->
 
@@ -474,6 +616,7 @@ function searchAll() {
 // Sidebar toggle
 const sidebar=document.getElementById('searchSidebar');
 document.getElementById('toggleSidebarBtn').addEventListener('click', ()=>sidebar.classList.toggle('show'));
+//Panel 
 const panelHeader = document.getElementById('layerPanelHeader');
 const panelContent = document.getElementById('layerPanelContent');
 const panelIcon = document.getElementById('panelToggleIcon');
@@ -484,6 +627,21 @@ panelHeader.addEventListener('click', () => {
   panelIcon.textContent = 
     panelContent.classList.contains('collapsed') ? '▶' : '▼';
 });
+// Legend Toggle
+const legendBtn = document.getElementById('legendBtn');
+const legendPanel = document.getElementById('legendPanel');
+const legendClose = document.getElementById('legendClose');
+
+legendBtn.addEventListener('click', () => {
+ legendPanel.style.display =
+  legendPanel.style.display === 'none' ? 'block' : 'none';
+
+});
+
+legendClose.addEventListener('click', () => {
+  legendPanel.style.display = 'none';
+});
+
 
 </script>
 </body>
