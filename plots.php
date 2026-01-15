@@ -67,7 +67,7 @@ html, body { height:100%; width:100%; }
 }
 
 .panel-content {
-  max-height: 55vh;     /* scrollable area */
+  max-height: 55vh;
   overflow-y: auto;
   transition: max-height 0.3s ease;
 }
@@ -77,12 +77,12 @@ html, body { height:100%; width:100%; }
   overflow: hidden;
 }
 
-/* ===== LEGEND PANEL ===== */
+/* LEGEND PANEL  */
 #legendPanel.opacity-toolbar {
-  width: 300px; /* increased from 220px to 300px */
-  padding: 16px 18px; /* slightly more padding for comfort */
+  width: 300px; 
+  padding: 16px 18px; 
 }
-/* ===== LEGEND CSS ===== */
+/* LEGEND CSS */
 
 /* Plot fills */
 .res { background: #D9B57B; border: 1px solid #A57C47; }
@@ -174,13 +174,39 @@ html, body { height:100%; width:100%; }
   display: inline-block;
 }
 
-/* Optional: prevent wrapping inside legend */
+/* prevent wrapping inside legend */
 .legend-content div {
   display: grid;
   grid-template-columns: 20px 1fr;
   align-items: center;
   gap: 8px;
   margin-bottom: 4px;
+}
+
+/* Land Use Panel - nice shadow and rounded edges */
+#landUsePanel {
+  width: 280px;
+  background: rgba(255,255,255,0.95);
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  padding: 10px;
+  font-size: 13px;
+  z-index: 1200;
+  max-height: 400px;
+  overflow-y: auto;
+  transition: all 0.3s ease;
+}
+#landUsePanel table {
+  border-collapse: collapse;
+}
+#landUsePanel th, #landUsePanel td {
+  border: 1px solid #ccc;
+  padding: 4px 6px;
+  text-align: left;
+}
+#landUsePanel th {
+  background-color: #198754;
+  color: white;
 }
 
 .opacity-toolbar h3 { margin-bottom:6px; font-size:14px; font-weight:700; }
@@ -246,6 +272,41 @@ html, body { height:100%; width:100%; }
 </div>
 </div>
 
+<!-- D-12 Details Panel -->
+<!-- Land Use Panel: Schools, Mosques, Graveyards only -->
+<div id="landUsePanel" class="opacity-toolbar" style="display:none; right:260px; top:360px;">
+  <div class="panel-header">
+    <span>Land Use Details</span>
+    <span onclick="document.getElementById('landUsePanel').style.display='none'" style="cursor:pointer;">✖</span>
+  </div>
+
+  <div style="padding:10px;font-size:13px;">
+    <label for="landUseSelect">Select Land Use:</label>
+    <select id="landUseSelect" onchange="filterLandUse()">
+      <option value="">--Select--</option>
+      <option value="School">School</option>
+      <option value="Mosque">Mosque</option>
+      <option value="Graveyard">Graveyard</option>
+    </select>
+
+    <p>Selected Land Use Count: <span id="landUseCount">0</span></p>
+
+    <table border="1" id="landUseTable" style="width:100%; margin-top:6px; font-size:12px;">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Sector</th>
+          <th>Subsector</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+
+
 <div class="toolbar">
   <button id="identifyBtn">📍</button>
   <button id="measureBtn">📏</button>
@@ -254,6 +315,9 @@ html, body { height:100%; width:100%; }
   <button id="downloadMapBtn">📄</button>
   <button id="searchCoordBtn">🗺️</button>
   <button id="legendBtn">🗂️</button>
+  <button onclick="loadD12Details()">D-12</button>
+
+
 </div>
 <!--Panel-->
 
@@ -640,6 +704,130 @@ legendBtn.addEventListener('click', () => {
 
 legendClose.addEventListener('click', () => {
   legendPanel.style.display = 'none';
+});
+
+// D12 details
+let d12Data = null; // store all features
+let d12Layer = null; // GeoJSON layer on map
+
+function loadD12Details() {
+  const proxyUrl = "proxy.php"; // proxy URL to fetch GeoJSON
+
+  fetch(proxyUrl)
+    .then(res => res.json())
+    .then(data => {
+      d12Data = data; // store features globally
+      plotAllFeatures(d12Data); // show all features in gray
+      document.getElementById('landUsePanel').style.display = 'block';
+    })
+    .catch(err => {
+      console.error("REAL ERROR:", err);
+      alert("D-12 data load failed");
+    });
+}
+
+// Plot everything in gray initially
+function plotAllFeatures(data) {
+  if(d12Layer) map.removeLayer(d12Layer);
+
+  d12Layer = L.geoJSON(data, {
+    style: feature => ({
+      color: 'gray',
+      weight: 1,
+      fillOpacity: 0.2
+    }),
+    onEachFeature: (feature, layer) => {
+      const name = feature.properties.Name ?? feature.properties.Class_Name ?? 'Unnamed';
+      const type = feature.properties.Classifica ?? '-';
+      layer.bindPopup(`<b>${name}</b><br>${type}`);
+    }
+  }).addTo(map);
+}
+
+// Filter and highlight selected land use
+function filterLandUse() {
+  const selectedType = document.getElementById("landUseSelect").value;
+  if(!d12Data) return;
+
+  if(d12Layer) map.removeLayer(d12Layer);
+
+  let count = 0;
+  const tbody = document.getElementById("landUseTable").querySelector("tbody");
+  tbody.innerHTML = "";
+
+  // Create GeoJSON layer with styling
+  d12Layer = L.geoJSON(d12Data, {
+    style: feature => {
+      const type = feature?.properties?.Classifica ?? '';
+      if (selectedType === "School" && type.toLowerCase().includes("school")) return {color:'red', weight:3, fillOpacity:0.6};
+      if (selectedType === "Mosque" && type.toLowerCase().includes("mosque")) return {color:'green', weight:3, fillOpacity:0.6};
+      if (selectedType === "Graveyard" && type.toLowerCase().includes("graveyard")) return {color:'black', weight:3, fillOpacity:0.6};
+      return {color:'gray', weight:1, fillOpacity:0.2};
+    },
+    onEachFeature: (feature, layer) => {
+      const type = feature?.properties?.Classifica ?? '';
+      const name = feature.properties.Name ?? feature.properties.Class_Name ?? 'Unnamed';
+      const sector = feature.properties.Sector ?? '-';
+      const subsector = feature.properties.Subsector ?? '-';
+
+      layer.bindPopup(`<b>${name}</b><br>${type}`);
+
+      // Table logic
+      if (
+        (selectedType === "School" && type.toLowerCase().includes("school")) ||
+        (selectedType === "Mosque" && type.toLowerCase().includes("mosque")) ||
+        (selectedType === "Graveyard" && type.toLowerCase().includes("graveyard"))
+      ) {
+        count++;
+
+        // Create table row
+        const row = document.createElement("tr");
+        row.style.cursor = "pointer"; // pointer on hover
+        row.innerHTML = `
+          <td>${name}</td>
+          <td>${type}</td>
+          <td>${sector}</td>
+          <td>${subsector}</td>
+        `;
+        tbody.appendChild(row);
+
+        // Click event to zoom to feature
+        row.addEventListener("click", () => {
+          if (feature.geometry.type === "Point") {
+            const coords = feature.geometry.coordinates; // [lng, lat]
+            map.flyTo([coords[1], coords[0]], 18, {duration:1.5});
+          } else {
+            const bounds = layer.getBounds();
+            map.fitBounds(bounds, {padding:[50,50]});
+          }
+          layer.openPopup();
+        });
+      }
+    }
+  }).addTo(map);
+
+  document.getElementById("landUseCount").innerText = count;
+}
+
+
+// Position Land Use Panel under D-12 button
+const d12Button = document.querySelector('button[onclick="loadD12Details()"]');
+const landUsePanel = document.getElementById('landUsePanel');
+
+function positionLandUsePanel() {
+  const rect = d12Button.getBoundingClientRect();
+  landUsePanel.style.top = rect.bottom + 5 + 'px'; // 5px gap
+  landUsePanel.style.left = rect.left + 'px';
+}
+
+// Call it initially and also on window resize
+positionLandUsePanel();
+window.addEventListener('resize', positionLandUsePanel);
+
+// When clicking D-12, show panel and reposition
+d12Button.addEventListener('click', () => {
+  landUsePanel.style.display = 'block';
+  positionLandUsePanel();
 });
 
 
