@@ -1,0 +1,202 @@
+/* === Reset & Base === */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  background-color: #f4f6f8;
+}
+
+/* === Search Toolbar at Top === */
+/* Sidebar container */
+#searchSidebar {
+  position: absolute;
+  top: 0;
+  left: -280px; /* hidden initially */
+  width: 280px;
+  height: 100%;
+  background: linear-gradient(135deg, #ffffff, #f0f0f0);
+  z-index: 1000;
+  box-shadow: 2px 0 12px rgba(0,0,0,0.3);
+  padding: 20px;
+  transition: left 0.3s ease;
+  overflow-y: auto;
+  border-radius: 0 10px 10px 0;
+}
+
+/* Sidebar show */
+#searchSidebar.show { left: 0; }
+
+/* Sidebar title */
+#searchSidebar h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #198754;
+  margin-bottom: 15px;
+  text-align: center;
+  border-bottom: 2px solid #198754;
+  padding-bottom: 8px;
+}
+
+/* Input boxes */
+.search-box {
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+}
+.search-box label {
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #333;
+}
+.search-box input {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #198754;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+.search-box input:focus {
+  border-color: #0b593c;
+  box-shadow: 0 0 5px rgba(25,135,84,0.5);
+}
+
+/* Search buttons */
+#searchSidebar button {
+  width: 100%;
+  padding: 10px 0;
+  margin-top: 10px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #fff;
+  background: #198754;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+#searchSidebar button:hover {
+  background: #0f5c3a;
+  transform: scale(1.03);
+}
+
+/* Toggle sidebar button */
+#toggleSidebarBtn {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  z-index: 1100;
+  background: #198754;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+#toggleSidebarBtn:hover {
+  background: #0f5c3a;
+  transform: scale(1.05);
+}
+
+/* === Map Fullscreen Under Search Bar === */
+#map {
+  position: absolute;
+  top: 60px; /* leave space for search bar */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+}
+
+/* === Toolbar Buttons (Green) on Map === */
+.toolbar {
+  position: absolute;
+  top: 80px;
+  left: 10px;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+}
+
+.toolbar button {
+  margin-bottom: 6px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background-color: #198754; /* green */
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  transition: all 0.2s ease-in-out;
+}
+
+.toolbar button:hover {
+  background-color: #157347;
+  transform: scale(1.05);
+}
+
+/* === Combined Layers + Transparency Panel === */
+.opacity-toolbar {
+  position: absolute;
+  top: 80px;
+  right: 10px;
+  z-index: 1000;
+  background: rgba(255,255,255,0.95);
+  border-radius: 10px;
+  padding: 12px 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  font-size: 13px;
+  color: #000;
+}
+
+.opacity-toolbar div {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.opacity-toolbar label {
+  flex: 1;
+  font-weight: 600;
+  color: darkgreen;
+}
+
+/* Range sliders */
+.opacity-toolbar input[type="range"] {
+  -webkit-appearance: none;
+  width: 110px;
+  height: 6px;
+  background: linear-gradient(90deg, #81c784, #388e3c);
+  border-radius: 4px;
+  outline: none;
+}
+
+.opacity-toolbar input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 16px;
+  width: 16px;
+  background: #81a895;
+  border: 2px solid #1b5e20;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.opacity-toolbar input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  background: #1b5e20;
+}
