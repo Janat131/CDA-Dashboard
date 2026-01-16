@@ -291,17 +291,16 @@ html, body { height:100%; width:100%; }
 
     <p>Selected Land Use Count: <span id="landUseCount">0</span></p>
 
-    <table border="1" id="landUseTable" style="width:100%; margin-top:6px; font-size:12px;">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Sector</th>
-          <th>Subsector</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+<table border="1" id="landUseTable" style="width:100%; margin-top:6px; font-size:12px;">
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Sector</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
   </div>
 </div>
 
@@ -706,19 +705,20 @@ legendClose.addEventListener('click', () => {
   legendPanel.style.display = 'none';
 });
 
-// D12 details
-let d12Data = null; // store all features
-let d12Layer = null; // GeoJSON layer on map
+// ================= D12 DETAILS =================
+let d12Data = null;   // store all features
+let d12Layer = null;  // GeoJSON layer on map
 
 function loadD12Details() {
-  const proxyUrl = "proxy.php"; // proxy URL to fetch GeoJSON
+  const proxyUrl = "proxy.php";
 
   fetch(proxyUrl)
     .then(res => res.json())
     .then(data => {
-      d12Data = data; // store features globally
-      plotAllFeatures(d12Data); // show all features in gray
+      d12Data = data;
+      plotAllFeatures(d12Data);
       document.getElementById('landUsePanel').style.display = 'block';
+      positionLandUsePanel();
     })
     .catch(err => {
       console.error("REAL ERROR:", err);
@@ -726,105 +726,116 @@ function loadD12Details() {
     });
 }
 
-// Plot everything in gray initially
+// ================= SHOW ALL FEATURES (GRAY) =================
 function plotAllFeatures(data) {
-  if(d12Layer) map.removeLayer(d12Layer);
+  if (d12Layer) map.removeLayer(d12Layer);
 
   d12Layer = L.geoJSON(data, {
-    style: feature => ({
+    style: () => ({
       color: 'gray',
       weight: 1,
       fillOpacity: 0.2
     }),
     onEachFeature: (feature, layer) => {
-      const name = feature.properties.Name ?? feature.properties.Class_Name ?? 'Unnamed';
-      const type = feature.properties.Classifica ?? '-';
-      layer.bindPopup(`<b>${name}</b><br>${type}`);
+      const type = feature.properties.Classifica || '';
+      const sector = feature.properties.Sector || '-';
+      layer.bindPopup(`<b>Type:</b> ${type}<br><b>Sector:</b> ${sector}`);
     }
   }).addTo(map);
 }
 
-// Filter and highlight selected land use
+// ================= FILTER LAND USE =================
 function filterLandUse() {
   const selectedType = document.getElementById("landUseSelect").value;
-  if(!d12Data) return;
+  if (!d12Data || !selectedType) return;
 
-  if(d12Layer) map.removeLayer(d12Layer);
+  if (d12Layer) map.removeLayer(d12Layer);
 
   let count = 0;
-  const tbody = document.getElementById("landUseTable").querySelector("tbody");
+  const tbody = document.querySelector("#landUseTable tbody");
   tbody.innerHTML = "";
 
-  // Create GeoJSON layer with styling
   d12Layer = L.geoJSON(d12Data, {
     style: feature => {
-      const type = feature?.properties?.Classifica ?? '';
-      if (selectedType === "School" && type.toLowerCase().includes("school")) return {color:'red', weight:3, fillOpacity:0.6};
-      if (selectedType === "Mosque" && type.toLowerCase().includes("mosque")) return {color:'green', weight:3, fillOpacity:0.6};
-      if (selectedType === "Graveyard" && type.toLowerCase().includes("graveyard")) return {color:'black', weight:3, fillOpacity:0.6};
-      return {color:'gray', weight:1, fillOpacity:0.2};
+      const type = feature.properties.Classifica || '';
+      const t = type.toLowerCase();
+
+      if (selectedType === "School" && t.includes("school")) return { color:'red', weight:3, fillOpacity:0.6 };
+      if (selectedType === "Mosque" && t.includes("mosque")) return { color:'green', weight:3, fillOpacity:0.6 };
+      if (selectedType === "Graveyard" && t.includes("graveyard")) return { color:'black', weight:3, fillOpacity:0.6 };
+
+      return { color:'gray', weight:1, fillOpacity:0.2 };
     },
+
     onEachFeature: (feature, layer) => {
-      const type = feature?.properties?.Classifica ?? '';
-      const name = feature.properties.Name ?? feature.properties.Class_Name ?? 'Unnamed';
-      const sector = feature.properties.Sector ?? '-';
-      const subsector = feature.properties.Subsector ?? '-';
+      const type = feature.properties.Classifica || '';
+      const t = type.toLowerCase();
+      const sector = feature.properties.Sector || '-';
 
-      layer.bindPopup(`<b>${name}</b><br>${type}`);
+      // Bind popup for every feature
+      layer.bindPopup(`<b>Type:</b> ${type}<br><b>Sector:</b> ${sector}`);
 
-      // Table logic
+      // Only include matching land use features
       if (
-        (selectedType === "School" && type.toLowerCase().includes("school")) ||
-        (selectedType === "Mosque" && type.toLowerCase().includes("mosque")) ||
-        (selectedType === "Graveyard" && type.toLowerCase().includes("graveyard"))
+        (selectedType === "School" && t.includes("school")) ||
+        (selectedType === "Mosque" && t.includes("mosque")) ||
+        (selectedType === "Graveyard" && t.includes("graveyard"))
       ) {
         count++;
 
-        // Create table row
+        // Table row: Type & Sector
         const row = document.createElement("tr");
-        row.style.cursor = "pointer"; // pointer on hover
+        row.style.cursor = "pointer";
         row.innerHTML = `
-          <td>${name}</td>
           <td>${type}</td>
           <td>${sector}</td>
-          <td>${subsector}</td>
         `;
         tbody.appendChild(row);
 
-        // Click event to zoom to feature
+        // ================= SEARCH-PLOTS LIKE SMOOTH ZOOM =================
         row.addEventListener("click", () => {
+          let bounds, lat, lng;
+
           if (feature.geometry.type === "Point") {
-            const coords = feature.geometry.coordinates; // [lng, lat]
-            map.flyTo([coords[1], coords[0]], 18, {duration:1.5});
+            [lng, lat] = feature.geometry.coordinates;
+            bounds = L.latLngBounds([lat, lng], [lat, lng]);
           } else {
-            const bounds = layer.getBounds();
-            map.fitBounds(bounds, {padding:[50,50]});
+            bounds = layer.getBounds();
           }
-          layer.openPopup();
+
+          // Smooth zoom like search plots
+          map.flyToBounds(bounds, {
+            padding: [50, 50],
+            duration: 1.2,       // adjust speed: 1–2s, faster than previous slow zoom
+            easeLinearity: 0.3    // smooth easing
+          });
+
+          // Open popup after animation
+          setTimeout(() => {
+            layer.openPopup();
+          }, 1400); // slightly longer than duration
         });
       }
     }
   }).addTo(map);
 
+  // Update Land Use count
   document.getElementById("landUseCount").innerText = count;
 }
 
 
-// Position Land Use Panel under D-12 button
+// ================= PANEL POSITION =================
 const d12Button = document.querySelector('button[onclick="loadD12Details()"]');
 const landUsePanel = document.getElementById('landUsePanel');
 
 function positionLandUsePanel() {
   const rect = d12Button.getBoundingClientRect();
-  landUsePanel.style.top = rect.bottom + 5 + 'px'; // 5px gap
+  landUsePanel.style.top = rect.bottom + 5 + 'px';
   landUsePanel.style.left = rect.left + 'px';
 }
 
-// Call it initially and also on window resize
-positionLandUsePanel();
 window.addEventListener('resize', positionLandUsePanel);
 
-// When clicking D-12, show panel and reposition
 d12Button.addEventListener('click', () => {
   landUsePanel.style.display = 'block';
   positionLandUsePanel();
