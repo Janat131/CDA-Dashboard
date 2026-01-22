@@ -304,8 +304,6 @@ html, body { height:100%; width:100%; }
   </div>
 </div>
 
-
-
 <div class="toolbar">
   <button id="identifyBtn">📍</button>
   <button id="measureBtn">📏</button>
@@ -315,7 +313,6 @@ html, body { height:100%; width:100%; }
   <button id="searchCoordBtn">🗺️</button>
   <button id="legendBtn">🗂️</button>
   <button onclick="loadD12Details()">D-12</button>
-
 
 </div>
 <!--Panel-->
@@ -706,76 +703,56 @@ legendClose.addEventListener('click', () => {
 });
 
 // ================= D12 DETAILS =================
-let d12Data = null;   // store all features
-let d12Layer = null;  // GeoJSON layer on map
+let d12Data = null;
+let d12Layer = null;
 
+// Load D12 data
 function loadD12Details() {
-  const proxyUrl = "proxy.php";
-
-  fetch(proxyUrl)
+  fetch("get_landuse.php")
     .then(res => res.json())
     .then(data => {
       d12Data = data;
-      plotAllFeatures(d12Data);
+      plotAllFeatures(d12Data); // show all points
       document.getElementById('landUsePanel').style.display = 'block';
       positionLandUsePanel();
     })
     .catch(err => {
-      console.error("REAL ERROR:", err);
+      console.error("D-12 load failed:", err);
       alert("D-12 data load failed");
     });
 }
 
-// ================= SHOW ALL FEATURES (GRAY) =================
 function plotAllFeatures(data) {
   if (d12Layer) map.removeLayer(d12Layer);
 
   d12Layer = L.geoJSON(data, {
-    style: () => ({
-      color: 'gray',
-      weight: 1,
-      fillOpacity: 0.2
-    }),
     onEachFeature: (feature, layer) => {
-      const type = feature.properties.Classifica || '';
+      const type = feature.properties.Type || '';
       const sector = feature.properties.Sector || '-';
       layer.bindPopup(`<b>Type:</b> ${type}<br><b>Sector:</b> ${sector}`);
     }
   }).addTo(map);
 }
 
-// ================= FILTER LAND USE =================
+// Filter points by type and update table
 function filterLandUse() {
   const selectedType = document.getElementById("landUseSelect").value;
-  if (!d12Data || !selectedType) return;
+  if (!d12Data) return;
 
   if (d12Layer) map.removeLayer(d12Layer);
 
-  let count = 0;
   const tbody = document.querySelector("#landUseTable tbody");
   tbody.innerHTML = "";
+  let count = 0;
 
   d12Layer = L.geoJSON(d12Data, {
-    style: feature => {
-      const type = feature.properties.Classifica || '';
-      const t = type.toLowerCase();
-
-      if (selectedType === "School" && t.includes("school")) return { color:'red', weight:3, fillOpacity:0.6 };
-      if (selectedType === "Mosque" && t.includes("mosque")) return { color:'green', weight:3, fillOpacity:0.6 };
-      if (selectedType === "Graveyard" && t.includes("graveyard")) return { color:'black', weight:3, fillOpacity:0.6 };
-
-      return { color:'gray', weight:1, fillOpacity:0.2 };
-    },
-
     onEachFeature: (feature, layer) => {
-      const type = feature.properties.Classifica || '';
+      const type = feature.properties.Type || '';
       const t = type.toLowerCase();
       const sector = feature.properties.Sector || '-';
-
-      // Bind popup for every feature
       layer.bindPopup(`<b>Type:</b> ${type}<br><b>Sector:</b> ${sector}`);
 
-      // Only include matching land use features
+      // Add to table only if matches selected type
       if (
         (selectedType === "School" && t.includes("school")) ||
         (selectedType === "Mosque" && t.includes("mosque")) ||
@@ -783,46 +760,25 @@ function filterLandUse() {
       ) {
         count++;
 
-        // Table row: Type & Sector
         const row = document.createElement("tr");
         row.style.cursor = "pointer";
-        row.innerHTML = `
-          <td>${type}</td>
-          <td>${sector}</td>
-        `;
+        row.innerHTML = `<td>${type}</td><td>${sector}</td>`;
         tbody.appendChild(row);
 
-        // ================= SEARCH-PLOTS LIKE SMOOTH ZOOM =================
+        // Click on table row → fly to point and show popup
         row.addEventListener("click", () => {
-          let bounds, lat, lng;
-
           if (feature.geometry.type === "Point") {
-            [lng, lat] = feature.geometry.coordinates;
-            bounds = L.latLngBounds([lat, lng], [lat, lng]);
-          } else {
-            bounds = layer.getBounds();
-          }
-
-          // Smooth zoom like search plots
-          map.flyToBounds(bounds, {
-            padding: [50, 50],
-            duration: 1.2,       // adjust speed: 1–2s, faster than previous slow zoom
-            easeLinearity: 0.3    // smooth easing
-          });
-
-          // Open popup after animation
-          setTimeout(() => {
+            const [lng, lat] = feature.geometry.coordinates;
+            map.flyTo([lat, lng], 17);
             layer.openPopup();
-          }, 1400); // slightly longer than duration
+          }
         });
       }
     }
   }).addTo(map);
 
-  // Update Land Use count
-  document.getElementById("landUseCount").innerText = count;
+  document.getElementById("landUseCount").textContent = count;
 }
-
 
 // ================= PANEL POSITION =================
 const d12Button = document.querySelector('button[onclick="loadD12Details()"]');
