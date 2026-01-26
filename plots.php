@@ -230,9 +230,32 @@ html, body { height:100%; width:100%; }
   <div class="search-box"><label>Plot</label><input list="plotsList" id="searchPlot" placeholder="Enter plot"><datalist id="plotsList"></datalist></div>
   <div class="search-box"><label>Street</label><input list="streetsList" id="searchStreet" placeholder="Enter street"><datalist id="streetsList"></datalist></div>
   <button onclick="searchAll()">Search</button>
+  <h3>Search Land Use</h3>
+  <div class="search-box">
+    <label>Sector</label>
+    <input list="sectorsList" id="landUseSector" placeholder="Enter sector">
+  </div>
+  <div class="search-box">
+    <label>Land Use Type</label>
+    <select id="landUseType">
+      <option value="">--Select--</option>
+      <option value="School">School</option>
+      <option value="Mosque">Mosque</option>
+      <option value="Graveyard">Graveyard</option>
+    </select>
+  </div>
+  <button onclick="searchLandUse()">Search Land Use</button>
+
+  <!-- Table inside sidebar -->
+  <table id="resultsTable" border="1" style="width:100%; margin-top:10px;">
+    <thead>
+      <tr><th>Type / Plot</th><th>Sector</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
   <a href="Housing.php" style="display:block;margin-top:10px;padding:8px 12px;background-color:#198754;color:white;text-align:center;border-radius:6px;text-decoration:none;font-weight:600;">Housing Schemes</a>
 </div>
-
 <div id="map"></div>
 <!-- Legend Panel -->
 <div id="legendPanel" class="opacity-toolbar" style="display:none; right:260px;">
@@ -312,7 +335,6 @@ html, body { height:100%; width:100%; }
   <button id="downloadMapBtn">📄</button>
   <button id="searchCoordBtn">🗺️</button>
   <button id="legendBtn">🗂️</button>
-  <button onclick="loadD12Details()">D-12</button>
 
 </div>
 <!--Panel-->
@@ -702,25 +724,18 @@ legendClose.addEventListener('click', () => {
   legendPanel.style.display = 'none';
 });
 
-// ================= D12 DETAILS =================
+// D12deatils //
+
 let d12Data = null;
 let d12Layer = null;
 
-// Load D12 data
-function loadD12Details() {
-  fetch("get_landuse.php")
-    .then(res => res.json())
-    .then(data => {
-      d12Data = data;
-      plotAllFeatures(d12Data); // show all points
-      document.getElementById('landUsePanel').style.display = 'block';
-      positionLandUsePanel();
-    })
-    .catch(err => {
-      console.error("D-12 load failed:", err);
-      alert("D-12 data load failed");
-    });
-}
+// Fetch land use data
+fetch("get_landuse.php")
+  .then(res => res.json())
+  .then(data => {
+    d12Data = data;
+  })
+  .catch(err => console.error(err));
 
 function plotAllFeatures(data) {
   if (d12Layer) map.removeLayer(d12Layer);
@@ -734,68 +749,61 @@ function plotAllFeatures(data) {
   }).addTo(map);
 }
 
-// Filter points by type and update table
-function filterLandUse() {
-  const selectedType = document.getElementById("landUseSelect").value;
+// ======================= SEARCH LAND USE =======================
+function searchLandUse() {
+  const sector = document.getElementById("landUseSector").value.trim().toLowerCase();
+  const type = document.getElementById("landUseType").value.toLowerCase();
+
+  const tbody = document.querySelector("#resultsTable tbody");
+  tbody.innerHTML = "";
+
   if (!d12Data) return;
 
+  // ALERT if no sector selected
+  if (!sector) {
+    alert("Please select a sector first!");
+    return;
+  }
+
+  // Remove previous layer
   if (d12Layer) map.removeLayer(d12Layer);
 
-  const tbody = document.querySelector("#landUseTable tbody");
-  tbody.innerHTML = "";
-  let count = 0;
+  // Filter data based on sector and type
+  const filteredData = {
+    type: "FeatureCollection",
+    features: d12Data.features.filter(feature => {
+      const featSector = (feature.properties.Sector || '-').toLowerCase();
+      const featType = (feature.properties.Type || '').toLowerCase();
+      return featSector === sector && (!type || featType === type);
+    })
+  };
 
-  d12Layer = L.geoJSON(d12Data, {
+  // Plot filtered points (default Leaflet pins)
+  d12Layer = L.geoJSON(filteredData, {
     onEachFeature: (feature, layer) => {
-      const type = feature.properties.Type || '';
-      const t = type.toLowerCase();
-      const sector = feature.properties.Sector || '-';
-      layer.bindPopup(`<b>Type:</b> ${type}<br><b>Sector:</b> ${sector}`);
+      const featType = feature.properties.Type || '';
+      const featSector = feature.properties.Sector || '-';
+      layer.bindPopup(`<b>Type:</b> ${featType}<br><b>Sector:</b> ${featSector}`);
 
-      // Add to table only if matches selected type
-      if (
-        (selectedType === "School" && t.includes("school")) ||
-        (selectedType === "Mosque" && t.includes("mosque")) ||
-        (selectedType === "Graveyard" && t.includes("graveyard"))
-      ) {
-        count++;
-
+      // Populate table if type is selected
+      if (type) {
         const row = document.createElement("tr");
+        row.innerHTML = `<td>${featType}</td><td>${featSector}</td>`;
         row.style.cursor = "pointer";
-        row.innerHTML = `<td>${type}</td><td>${sector}</td>`;
-        tbody.appendChild(row);
-
-        // Click on table row → fly to point and show popup
-        row.addEventListener("click", () => {
+        row.onclick = () => {
           if (feature.geometry.type === "Point") {
             const [lng, lat] = feature.geometry.coordinates;
             map.flyTo([lat, lng], 17);
             layer.openPopup();
           }
-        });
+        };
+        tbody.appendChild(row);
       }
     }
   }).addTo(map);
-
-  document.getElementById("landUseCount").textContent = count;
 }
 
-// ================= PANEL POSITION =================
-const d12Button = document.querySelector('button[onclick="loadD12Details()"]');
-const landUsePanel = document.getElementById('landUsePanel');
 
-function positionLandUsePanel() {
-  const rect = d12Button.getBoundingClientRect();
-  landUsePanel.style.top = rect.bottom + 5 + 'px';
-  landUsePanel.style.left = rect.left + 'px';
-}
-
-window.addEventListener('resize', positionLandUsePanel);
-
-d12Button.addEventListener('click', () => {
-  landUsePanel.style.display = 'block';
-  positionLandUsePanel();
-});
 
 
 </script>
