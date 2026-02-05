@@ -5,7 +5,7 @@ $host = "localhost";
 $user = "root";
 $password = "";
 $dbname = "cda_dashboard";
-$table = "d12__1___1_";
+$table = "d12__1_";
 
 $conn = new mysqli($host, $user, $password, $dbname);
 if ($conn->connect_error) {

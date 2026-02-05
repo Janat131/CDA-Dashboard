@@ -10,7 +10,7 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-$sql = "SELECT `id`, `title`, `latitude`, `longitude` FROM `zones_dd__1_`"; 
+$sql = "SELECT `id`, `title`, `latitude`, `longitude` FROM `zones_dd`"; 
 $result = $conn->query($sql);
 
 $data = [];

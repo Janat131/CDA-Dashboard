@@ -29,7 +29,7 @@ SELECT
     b.`corner_status` AS `PFMS_Corner_Status`,
     b.`allotment_status` AS `PFMS_Allotment_Status`
 FROM 
-    `d12__1___1_` a
+    `d12__1_` a
 JOIN 
     `pfms_plots_info_sectord12` b
 ON 

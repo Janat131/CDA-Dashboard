@@ -19,8 +19,8 @@ $sql = "
         hs.Area, 
         hd.Latitude, 
         hd.Longitude
-    FROM housing_scheme hs
-    LEFT JOIN housingdata hd ON hs.Name = hd.Name
+    FROM housing_schemes hs
+    LEFT JOIN housing_data hd ON hs.Name = hd.Name
 ";
 
 $result = $conn->query($sql);

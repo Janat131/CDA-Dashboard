@@ -10,7 +10,7 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-$sql = "SELECT `name`, `address`, `longitude`, `latitude` FROM `markaz_in___1_`"; 
+$sql = "SELECT `name`, `address`, `longitude`, `latitude` FROM `markaz_in_`"; 
 $result = $conn->query($sql);
 
 if (!$result) {
